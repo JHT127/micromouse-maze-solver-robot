@@ -8,7 +8,7 @@
 Adafruit_MPU6050 mpu;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   
   // Initialize I2C with the defined pins
   Wire.begin(MPU_SDA, MPU_SCL);

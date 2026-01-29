@@ -3,7 +3,7 @@
 #include "../hardware/pins.h"
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(3000);
   
   pinMode(MOTOR_LEFT_A, OUTPUT);

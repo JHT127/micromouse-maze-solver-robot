@@ -5,7 +5,7 @@
 #include "../hardware/pins.h"
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(3000);
   
   Serial.println("STEP 2: TEST RIGHT MOTOR ONCE");

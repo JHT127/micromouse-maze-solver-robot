@@ -5,7 +5,7 @@
 #include "../hardware/pins.h"
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(3000);  // Time to read
   
   Serial.println("=== MOTORS ONLY TEST ===");

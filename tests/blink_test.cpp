@@ -5,7 +5,7 @@
 
 void setup() {
   // Initialize Serial communication
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(1000); // Wait for Serial to initialize
   
   // Set LED pin as output

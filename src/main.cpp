@@ -1,61 +1,135 @@
-#include <Arduino.h>
-#include <WiFi.h>
-#include <ArduinoOTA.h>
 
-const char* wifi_name = "Laboo";
-const char* wifi_pass = "laboo2025";
+#include <Arduino.h>
+#include "StateSpace.h"
+
+
+//------------------------------------------------------------
+// GLOBAL OBJECTS
+// Purpose: Create the state space model
+//------------------------------------------------------------
+
+StateSpace robot;
+
+
+//------------------------------------------------------------
+// SETUP
+// Purpose: Run once when ESP32 starts
+//------------------------------------------------------------
 
 void setup() {
-  Serial.begin(9600);
-  delay(2000);
-  
-  Serial.println("\n=== Micromouse Starting ===");
-  
-  // Connect to WiFi
-  WiFi.begin(wifi_name, wifi_pass);
-  
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
-  }
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\n✓ WiFi Connected!");
-    Serial.print("IP: ");
-    Serial.println(WiFi.localIP());
+
+    Serial.begin(9600);
+    delay(2000);  // Wait for Serial Monitor to open
     
-    // Configure OTA
-    ArduinoOTA.setPort(8266);
-    ArduinoOTA.setPassword("laboo2025");
-    ArduinoOTA.setHostname("Laboo");
+
+    Serial.println("\n\n");
+    Serial.println("========================================");
+    Serial.println("STATE SPACE MODEL TEST");
+    Serial.println("========================================");
     
-    ArduinoOTA.onStart([]() {
-      Serial.println("OTA Update Starting...");
-    });
+
+    // Initialize the state space model
+    robot.initialize();
+    robot.setStartPosition(0.0, 0.0, 0.0);  // Start at origin facing North
     
-    ArduinoOTA.onEnd([]() {
-      Serial.println("\nOTA Update Complete!");
-    });
+
+    Serial.println("\nStarting position:");
+    robot.printState();
+    robot.printMatrices();
     
-    ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("Progress: %u%%\r", (progress * 100) / total);
-    });
+
+    //------------------------------------------------------------
+    // TEST 1: MOVE FORWARD
+    // Purpose: Verify forward movement works
+    //------------------------------------------------------------
+
+    Serial.println("\n========================================");
+    Serial.println("TEST 1: Move forward 0.2m/s for 1 second");
+    Serial.println("Expected: y should increase by 0.2m");
+    Serial.println("========================================");
     
-    ArduinoOTA.begin();
-    //Serial.println("✓ OTA Ready on port 8266");
-    Serial.println("✓ OTA Ready - TEST WIRELESS UPLOAD!");
+    robot.predict(0.2, 0.0, 1.0);  // v=0.2m/s, omega=0rad/s, dt=1.0s
+    robot.printState();
     
-  } else {
-    Serial.println("\n✗ WiFi Failed! Check credentials");
-  }
+
+    //------------------------------------------------------------
+    // TEST 2: ROTATE
+    // Purpose: Verify rotation works
+    //------------------------------------------------------------
+
+    Serial.println("\n========================================");
+    Serial.println("TEST 2: Rotate 90° (1.57 rad/s for 1 second)");
+    Serial.println("Expected: angle should change to ~90°");
+    Serial.println("========================================");
+    
+    robot.predict(0.0, 1.57, 1.0);  // v=0m/s, omega=1.57rad/s, dt=1.0s
+    robot.printState();
+    robot.printMatrices();  // Show updated B matrix
+    
+
+    //------------------------------------------------------------
+    // TEST 3: MOVE FORWARD AGAIN
+    // Purpose: Verify movement at 90° works correctly
+    //------------------------------------------------------------
+
+    Serial.println("\n========================================");
+    Serial.println("TEST 3: Move forward again at 90°");
+    Serial.println("Expected: x should increase (moving East now)");
+    Serial.println("========================================");
+    
+    robot.predict(0.2, 0.0, 1.0);
+    robot.printState();
+    
+
+    //------------------------------------------------------------
+    // TEST 4: CONTINUOUS MOVEMENT
+    // Purpose: Simulate real robot updating every 0.02 seconds
+    //------------------------------------------------------------
+
+    Serial.println("\n========================================");
+    Serial.println("TEST 4: Simulate continuous movement");
+    Serial.println("Moving forward at 0.1m/s for 2 seconds");
+    Serial.println("Updates every 0.02s (50Hz)");
+    Serial.println("========================================");
+    
+    robot.resetToOrigin();
+    
+    float timeStep = 0.02;  // 20ms updates (50Hz)
+    float totalTime = 2.0;   // Run for 2 seconds
+    int steps = totalTime / timeStep;
+    
+    for (int i = 0; i < steps; i++) {
+        robot.predict(0.1, 0.0, timeStep);
+        
+        // Print every 10th update
+        if (i % 10 == 0) {
+            Serial.print("Time: ");
+            Serial.print(i * timeStep, 2);
+            Serial.print("s -> ");
+            robot.printState();
+        }
+    }
+    
+
+    Serial.println("\n========================================");
+    Serial.println("FINAL POSITION:");
+    Serial.println("========================================");
+    robot.printState();
+    
+    Serial.println("\n========================================");
+    Serial.println("ALL TESTS COMPLETE");
+    Serial.println("========================================");
+
 }
 
+
+//------------------------------------------------------------
+// LOOP
+// Purpose: Run repeatedly (not used in this test)
+//------------------------------------------------------------
+
 void loop() {
-  if (WiFi.status() == WL_CONNECTED) {
-    ArduinoOTA.handle();
-  }
-  delay(10);
-  Serial.println("Waiting for wireless upload...");
+    // Nothing here for now
+    // State space just tracks position, doesn't control motors yet
 }
+

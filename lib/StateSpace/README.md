@@ -74,7 +74,7 @@ This is just the foundation. Next you'll:
 ### Step 2: Open Serial Monitor
 
 1. Click "Serial Monitor" in PlatformIO
-2. Set baud rate to 115200
+2. Set baud rate to 9600
 3. Press reset button on ESP32
 
 ### Step 3: Watch the Output

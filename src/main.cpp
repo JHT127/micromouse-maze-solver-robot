@@ -20,7 +20,7 @@ Encoder rightEncoder(ENCODER_RIGHT_A, ENCODER_RIGHT_B, false); // false = right
 
 
 StateSpace robot;
-
+void runTests();
 
 //------------------------------------------------------------
 // TIMING

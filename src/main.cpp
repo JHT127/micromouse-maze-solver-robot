@@ -6,6 +6,7 @@
 //------------------------------------------------------------
 // GLOBAL OBJECTS
 // Purpose: Create the state space model
+// Tested state space successfully
 //------------------------------------------------------------
 
 StateSpace robot;

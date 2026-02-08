@@ -39,7 +39,7 @@ const float UPDATE_INTERVAL = 0.02;  // 20ms = 50Hz
 //------------------------------------------------------------
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     delay(2000);
     
     Serial.println("\n\n");
@@ -79,7 +79,7 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Left motor forward...");
     
-    leftMotor.forward(100);
+    leftMotor.forward(60);
     delay(1000);
     leftMotor.stop();
     
@@ -90,7 +90,7 @@ void runTests() {
     delay(500);
     
     Serial.println("Right motor forward...");
-    rightMotor.forward(100);
+    rightMotor.forward(60);
     delay(1000);
     rightMotor.stop();
     
@@ -114,8 +114,8 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Moving forward for 2 seconds...\n");
     
-    leftMotor.forward(120);
-    rightMotor.forward(120);
+    leftMotor.forward(70);
+    rightMotor.forward(70);
     
     unsigned long startTime = millis();
     while (millis() - startTime < 2000) {
@@ -147,8 +147,8 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Measuring velocity for 3 seconds...\n");
     
-    leftMotor.forward(150);
-    rightMotor.forward(150);
+    leftMotor.forward(80);
+    rightMotor.forward(80);
     
     startTime = millis();
     unsigned long lastPrintTime = startTime;
@@ -192,8 +192,8 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Moving and tracking position...\n");
     
-    leftMotor.forward(150);
-    rightMotor.forward(150);
+    leftMotor.forward(80);
+    rightMotor.forward(80);
     
     startTime = millis();
     lastUpdateTime = startTime;

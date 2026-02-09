@@ -79,7 +79,8 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Left motor forward...");
     
-    leftMotor.forward(60);
+    delay(3000);
+    leftMotor.forward(100);
     delay(1000);
     leftMotor.stop();
     
@@ -114,7 +115,7 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Moving forward for 2 seconds...\n");
     
-    leftMotor.forward(70);
+    leftMotor.forward(100);
     rightMotor.forward(70);
     
     unsigned long startTime = millis();
@@ -147,7 +148,7 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Measuring velocity for 3 seconds...\n");
     
-    leftMotor.forward(80);
+    leftMotor.forward(100);
     rightMotor.forward(80);
     
     startTime = millis();
@@ -192,7 +193,7 @@ void runTests() {
     Serial.println("========================================");
     Serial.println("Moving and tracking position...\n");
     
-    leftMotor.forward(80);
+    leftMotor.forward(100);
     rightMotor.forward(80);
     
     startTime = millis();

@@ -42,7 +42,7 @@ const float UPDATE_INTERVAL = 0.02;  // 20ms = 50Hz
 
 float targetSpeed = 0.08;  // 8 cm/s (safe speed)
 
-
+void runTests();
 
 //------------------------------------------------------------
 // SETUP

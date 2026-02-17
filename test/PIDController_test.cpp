@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include "pins.h"
 #include "Motor.h"
@@ -6,12 +5,9 @@
 #include "StateSpace.h"
 #include "PIDController.h"
 
-
 //------------------------------------------------------------
 // GLOBAL OBJECTS
-// Purpose: Create all components
 //------------------------------------------------------------
-
 Motor leftMotor(MOTOR_LEFT_A, MOTOR_LEFT_B, MOTOR_LEFT_PWM);
 Motor rightMotor(MOTOR_RIGHT_A, MOTOR_RIGHT_B, MOTOR_RIGHT_PWM);
 
@@ -20,343 +16,238 @@ Encoder rightEncoder(ENCODER_RIGHT_A, ENCODER_RIGHT_B, false);
 
 StateSpace robot;
 
-PIDController leftPID(500.0, 50.0, 10.0);   // Start with these gains
-PIDController rightPID(500.0, 50.0, 10.0);
-
-
+PIDController leftPID(500.0, 20.0, 10.0);
+PIDController rightPID(500.0, 20.0, 10.0);
 
 //------------------------------------------------------------
-// CONTROL LOOP TIMING
-// Purpose: Update PID at consistent rate
+// TIMING
 //------------------------------------------------------------
-
 unsigned long lastUpdateTime = 0;
-const float UPDATE_INTERVAL = 0.02;  // 20ms = 50Hz
+const float UPDATE_INTERVAL = 0.02;
+float targetSpeed = 0.15;
 
-
-
-//------------------------------------------------------------
-// TARGET SPEED
-// Purpose: What velocity we want both wheels to achieve
-//------------------------------------------------------------
-
-float targetSpeed = 0.10;  // 10 cm/s (safe speed)
-
-void runTests();
-
-//------------------------------------------------------------
-// SETUP
-// Purpose: Initialize everything and run tests
-//------------------------------------------------------------
-
+bool testsDone = false;
 
 void setup() {
     Serial.begin(9600);
-    delay(2000);
-    
-    Serial.println("\n\n");
+    delay(3000);  // Extra time to open serial monitor
+
     Serial.println("========================================");
     Serial.println("PID CONTROLLER TEST");
     Serial.println("========================================\n");
-    
 
-    // Initialize all hardware
     leftMotor.initialize();
     rightMotor.initialize();
     leftEncoder.initialize();
     rightEncoder.initialize();
     robot.initialize();
-    
 
-    // Configure PID limits
-    leftPID.setOutputLimits(50, 150);   // Motor PWM range (conservative)
-    rightPID.setOutputLimits(50, 150);
+    leftPID.setOutputLimits(0,200);
+    rightPID.setOutputLimits(0,200);
     leftPID.setIntegralLimits(-50, 50);
     rightPID.setIntegralLimits(-50, 50);
-    
 
-    Serial.println("PID Controllers initialized");
+    Serial.println("All hardware initialized");
     leftPID.printGains();
     Serial.println();
-    
 
-    runTests();
+    //------------------------------------------------------------
+    // SANITY CHECK: Verify motors work before PID
+    //------------------------------------------------------------
+    /*Serial.println("========================================");
+    Serial.println("SANITY CHECK: Motors and Encoders");
+    Serial.println("========================================");
+    Serial.println("Spinning both motors at PWM 80 for 2 seconds...\n");
 
-}
+    leftEncoder.reset();
+    rightEncoder.reset();
 
+    leftMotor.setSpeed(80);
+    rightMotor.setSpeed(80);
 
+    unsigned long startTime = millis();
+    while (millis() - startTime < 2000) {
+        Serial.print("Left ticks: ");
+        Serial.print(leftEncoder.getTicks());
+        Serial.print(" | Right ticks: ");
+        Serial.println(rightEncoder.getTicks());
+        delay(400);
+    }
 
+    leftMotor.stop();
+    rightMotor.stop();
 
-//------------------------------------------------------------
-// RUN TESTS
-// Purpose: Test PID controller step by step
-//------------------------------------------------------------
+    Serial.print("\nFinal - Left: ");
+    Serial.print(leftEncoder.getTicks());
+    Serial.print(" | Right: ");
+    Serial.println(rightEncoder.getTicks());
 
-void runTests() {
+    if (leftEncoder.getTicks() < 10 || rightEncoder.getTicks() < 10) {
+        Serial.println("\n❌ ERROR: Encoders not reading!");
+        Serial.println("Fix encoders before PID test.");
+        Serial.println("Stopping here.");
+        while(true) { delay(1000); }  // Stop everything
+    }
+
+    Serial.println("\n✓ Motors and encoders working!\n");
+    delay(2000);*/
 
     //------------------------------------------------------------
     // TEST 1: SINGLE WHEEL PID
     //------------------------------------------------------------
-
     Serial.println("========================================");
-    Serial.println("TEST 1: Single Wheel Speed Control");
+    Serial.println("TEST 1: Single Wheel PID (Left only)");
     Serial.println("========================================");
-    Serial.print("Target speed: ");
-    Serial.print(targetSpeed, 3);
-    Serial.println(" m/s");
-    Serial.println("Controlling LEFT wheel only for 3 seconds...\n");
-    
+    Serial.print("Target: ");
+    Serial.print(targetSpeed);
+    Serial.println(" m/s\n");
 
     leftEncoder.reset();
     leftPID.reset();
-    
+    lastUpdateTime = millis();
 
+    //remove
     unsigned long startTime = millis();
-    lastUpdateTime = startTime;
-    
 
-    leftMotor.setSpeed(60);  // Give initial push to start
-    delay(200);              // Let motor start spinning
-    leftPID.reset();         // Then let PID take over
+    startTime = millis();
+    while (millis() - startTime < 4000) {
+        unsigned long now = millis();
+        float dt = (now - lastUpdateTime) / 1000.0;
 
-    
-
-    while (millis() - startTime < 3000) {
-        unsigned long currentTime = millis();
-        float dt = (currentTime - lastUpdateTime) / 1000.0;
-        
         if (dt >= UPDATE_INTERVAL) {
-            // Measure actual speed
-            float actualSpeed = leftEncoder.getVelocity(dt);
-            
-            // PID calculates motor power needed
-            float motorPower = leftPID.compute(targetSpeed, actualSpeed, dt);
-        
+            float actual = leftEncoder.getVelocity(dt);
+            float power = leftPID.compute(targetSpeed, actual, dt);
+            leftMotor.setSpeed(power);
 
-            //Add minimum speed so motor actually starts
-            if (motorPower > 0 && motorPower < 50) {
-                motorPower = 50;
+            if ((now - startTime) % 500 < 30) {
+                Serial.print("t=");
+                Serial.print((now - startTime) / 1000.0, 1);
+                Serial.print("s | actual=");
+                Serial.print(actual, 3);
+                Serial.print(" m/s | PWM=");
+                Serial.println((int)power);
             }
 
-
-            // Apply to motor
-            leftMotor.setSpeed(motorPower);
-            
-            // Print every 200ms
-            if ((currentTime - startTime) % 200 < 50) {
-                Serial.print("Time: ");
-                Serial.print((currentTime - startTime) / 1000.0, 1);
-                Serial.print("s | Target: ");
-                Serial.print(targetSpeed, 3);
-                Serial.print(" m/s | Actual: ");
-                Serial.print(actualSpeed, 3);
-                Serial.print(" m/s | PWM: ");
-                Serial.println((int)motorPower);
-            }
-            
-            lastUpdateTime = currentTime;
+            lastUpdateTime = now;
         }
     }
-    
+
     leftMotor.stop();
-    
-    Serial.println("\n✓ Single wheel PID works!\n");
+    Serial.println("\n✓ Test 1 done\n");
     delay(2000);
-    
-
-
 
     //------------------------------------------------------------
-    // TEST 2: BOTH WHEELS WITHOUT PID
+    // TEST 2: BOTH WHEELS WITHOUT PID (Baseline)
     //------------------------------------------------------------
-    Serial.println("========================================");
+    /*Serial.println("========================================");
     Serial.println("TEST 2: Both Wheels WITHOUT PID");
-    Serial.println("(Robot will curve - this is normal)");
     Serial.println("========================================\n");
-    
+
     leftEncoder.reset();
     rightEncoder.reset();
     robot.resetToOrigin();
-    
-    // Same PWM to both motors (no PID correction)
+
     leftMotor.setSpeed(80);
     rightMotor.setSpeed(80);
-    
+
     startTime = millis();
     lastUpdateTime = startTime;
-    
+
     while (millis() - startTime < 3000) {
-        unsigned long currentTime = millis();
-        float dt = (currentTime - lastUpdateTime) / 1000.0;
-        
+        unsigned long now = millis();
+        float dt = (now - lastUpdateTime) / 1000.0;
+
         if (dt >= UPDATE_INTERVAL) {
-            float vLeft = leftEncoder.getVelocity(dt);
-            float vRight = rightEncoder.getVelocity(dt);
-            
-            float v = (vLeft + vRight) / 2.0;
-            float omega = (vRight - vLeft) / 0.08;
+            float vL = leftEncoder.getVelocity(dt);
+            float vR = rightEncoder.getVelocity(dt);
+            float v = (vL + vR) / 2.0;
+            float omega = (vR - vL) / 0.08;
             robot.predict(v, omega, dt);
-            
-            if ((currentTime - startTime) % 500 < 50) {
-                Serial.print("Time: ");
-                Serial.print((currentTime - startTime) / 1000.0, 1);
-                Serial.print("s | Left: ");
-                Serial.print(vLeft, 3);
-                Serial.print(" m/s | Right: ");
-                Serial.print(vRight, 3);
-                Serial.print(" m/s | ");
+
+            if ((now - startTime) % 500 < 30) {
+                Serial.print("L=");
+                Serial.print(vL, 3);
+                Serial.print(" R=");
+                Serial.print(vR, 3);
+                Serial.print(" | ");
                 robot.printState();
             }
-            
-            lastUpdateTime = currentTime;
+
+            lastUpdateTime = now;
         }
     }
-    
+
     leftMotor.stop();
     rightMotor.stop();
-    
-    Serial.println("\nFinal position WITHOUT PID:");
+
+    Serial.println("\nFinal WITHOUT PID:");
     robot.printState();
-    Serial.println("Notice: Robot curved (X != 0, angle != 0)\n");
-    
-    delay(2000);
-    
-
-
+    delay(2000);*/
 
     //------------------------------------------------------------
     // TEST 3: BOTH WHEELS WITH PID
     //------------------------------------------------------------
-    Serial.println("========================================");
+    Serial.println("\n========================================");
     Serial.println("TEST 3: Both Wheels WITH PID");
-    Serial.println("(Robot should go straighter)");
     Serial.println("========================================\n");
-    
+
     leftEncoder.reset();
     rightEncoder.reset();
     leftPID.reset();
     rightPID.reset();
     robot.resetToOrigin();
-    
+
     startTime = millis();
     lastUpdateTime = startTime;
-    
+
     while (millis() - startTime < 3000) {
-        unsigned long currentTime = millis();
-        float dt = (currentTime - lastUpdateTime) / 1000.0;
-        
+        unsigned long now = millis();
+        float dt = (now - lastUpdateTime) / 1000.0;
+
         if (dt >= UPDATE_INTERVAL) {
-            // Measure actual speeds
-            float vLeft = leftEncoder.getVelocity(dt);
-            float vRight = rightEncoder.getVelocity(dt);
-            
-            // PID controls each wheel independently
-            float leftPower = leftPID.compute(targetSpeed, vLeft, dt);
-            float rightPower = rightPID.compute(targetSpeed, vRight, dt);
-            
-            // Apply to motors
+            float vL = leftEncoder.getVelocity(dt);
+            float vR = rightEncoder.getVelocity(dt);
+
+            float leftPower = leftPID.compute(targetSpeed, vL, dt);
+            float rightPower = rightPID.compute(targetSpeed, vR, dt);
+
             leftMotor.setSpeed(leftPower);
             rightMotor.setSpeed(rightPower);
-            
-            // Update position
-            float v = (vLeft + vRight) / 2.0;
-            float omega = (vRight - vLeft) / 0.08;
+
+            float v = (vL + vR) / 2.0;
+            float omega = (vR - vL) / 0.08;
             robot.predict(v, omega, dt);
-            
-            if ((currentTime - startTime) % 500 < 50) {
-                Serial.print("Time: ");
-                Serial.print((currentTime - startTime) / 1000.0, 1);
-                Serial.print("s | Left: ");
-                Serial.print(vLeft, 3);
-                Serial.print(" m/s | Right: ");
-                Serial.print(vRight, 3);
-                Serial.print(" m/s | ");
+
+            if ((now - startTime) % 500 < 30) {
+                Serial.print("L=");
+                Serial.print(vL, 3);
+                Serial.print(" R=");
+                Serial.print(vR, 3);
+                Serial.print(" | ");
                 robot.printState();
             }
-            
-            lastUpdateTime = currentTime;
+
+            lastUpdateTime = now;
         }
     }
-    
+
     leftMotor.stop();
     rightMotor.stop();
-    
-    Serial.println("\nFinal position WITH PID:");
+
+    Serial.println("\nFinal WITH PID:");
     robot.printState();
-    Serial.println("Notice: Straighter line (X ≈ 0, angle ≈ 0)\n");
-    
 
-
-    
-    //------------------------------------------------------------
-    // TEST 4: VELOCITY MATCHING DEMO
-    //------------------------------------------------------------
-    Serial.println("========================================");
-    Serial.println("TEST 4: Velocity Matching");
-    Serial.println("Watch how PID keeps speeds equal");
-    Serial.println("========================================\n");
-    
-    leftEncoder.reset();
-    rightEncoder.reset();
-    leftPID.reset();
-    rightPID.reset();
-    
-    startTime = millis();
-    lastUpdateTime = startTime;
-    
-    while (millis() - startTime < 5000) {
-        unsigned long currentTime = millis();
-        float dt = (currentTime - lastUpdateTime) / 1000.0;
-        
-        if (dt >= UPDATE_INTERVAL) {
-            float vLeft = leftEncoder.getVelocity(dt);
-            float vRight = rightEncoder.getVelocity(dt);
-            
-            float leftPower = leftPID.compute(targetSpeed, vLeft, dt);
-            float rightPower = rightPID.compute(targetSpeed, vRight, dt);
-            
-            leftMotor.setSpeed(leftPower);
-            rightMotor.setSpeed(rightPower);
-            
-            if ((currentTime - startTime) % 100 < 50) {
-                Serial.print("Left: ");
-                Serial.print(vLeft, 4);
-                Serial.print(" m/s (PWM: ");
-                Serial.print((int)leftPower);
-                Serial.print(") | Right: ");
-                Serial.print(vRight, 4);
-                Serial.print(" m/s (PWM: ");
-                Serial.print((int)rightPower);
-                Serial.print(") | Diff: ");
-                Serial.print((vLeft - vRight) * 1000, 2);
-                Serial.println(" mm/s");
-            }
-            
-            lastUpdateTime = currentTime;
-        }
-    }
-    
-    leftMotor.stop();
-    rightMotor.stop();
-    
     Serial.println("\n========================================");
     Serial.println("ALL TESTS COMPLETE");
     Serial.println("========================================");
-    Serial.println("\nKey Observations:");
-    Serial.println("- Test 2 (no PID): Robot curves");
-    Serial.println("- Test 3 (with PID): Robot straighter");
-    Serial.println("- Test 4: Speeds converge to target");
-    Serial.println("\n✓ PID Controller working!");
-    Serial.println("✓ Ready for motion control!");
+
+    testsDone = true;
 }
-
-
 
 //------------------------------------------------------------
 // LOOP
-// Purpose: Not used in these tests
+// Purpose: Do nothing after tests finish
 //------------------------------------------------------------
-
 void loop() {
-    // All tests run once in setup()
+    delay(10000);  // Sit here forever, no re-running
 }

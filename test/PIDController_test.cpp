@@ -20,8 +20,8 @@ Encoder rightEncoder(ENCODER_RIGHT_A, ENCODER_RIGHT_B, false);
 
 StateSpace robot;
 
-PIDController leftPID(2.0, 0.5, 0.1);   // Start with these gains
-PIDController rightPID(2.0, 0.5, 0.1);
+PIDController leftPID(500.0, 50.0, 10.0);   // Start with these gains
+PIDController rightPID(500.0, 50.0, 10.0);
 
 
 
@@ -40,7 +40,7 @@ const float UPDATE_INTERVAL = 0.02;  // 20ms = 50Hz
 // Purpose: What velocity we want both wheels to achieve
 //------------------------------------------------------------
 
-float targetSpeed = 0.08;  // 8 cm/s (safe speed)
+float targetSpeed = 0.10;  // 10 cm/s (safe speed)
 
 void runTests();
 
@@ -69,8 +69,8 @@ void setup() {
     
 
     // Configure PID limits
-    leftPID.setOutputLimits(0, 150);   // Motor PWM range (conservative)
-    rightPID.setOutputLimits(0, 150);
+    leftPID.setOutputLimits(50, 150);   // Motor PWM range (conservative)
+    rightPID.setOutputLimits(50, 150);
     leftPID.setIntegralLimits(-50, 50);
     rightPID.setIntegralLimits(-50, 50);
     
@@ -114,6 +114,13 @@ void runTests() {
     unsigned long startTime = millis();
     lastUpdateTime = startTime;
     
+
+    leftMotor.setSpeed(60);  // Give initial push to start
+    delay(200);              // Let motor start spinning
+    leftPID.reset();         // Then let PID take over
+
+    
+
     while (millis() - startTime < 3000) {
         unsigned long currentTime = millis();
         float dt = (currentTime - lastUpdateTime) / 1000.0;
@@ -124,7 +131,14 @@ void runTests() {
             
             // PID calculates motor power needed
             float motorPower = leftPID.compute(targetSpeed, actualSpeed, dt);
-            
+        
+
+            //Add minimum speed so motor actually starts
+            if (motorPower > 0 && motorPower < 50) {
+                motorPower = 50;
+            }
+
+
             // Apply to motor
             leftMotor.setSpeed(motorPower);
             

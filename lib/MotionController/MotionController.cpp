@@ -75,6 +75,7 @@ bool MotionController::moveForward(float distance) {
         Serial.print("Moving forward: ");
         Serial.print(distance);
         Serial.println(" m");
+        return false;
     }
     
     float dt = UPDATE_RATE;
@@ -110,7 +111,6 @@ bool MotionController::moveForward(float distance) {
         return true;
     }
     
-    delay(UPDATE_RATE * 1000);
     return false;
 }
 
@@ -130,6 +130,7 @@ bool MotionController::moveBackward(float distance) {
         Serial.print("Moving backward: ");
         Serial.print(distance);
         Serial.println(" m");
+        return false;
     }
     
     float dt = UPDATE_RATE;
@@ -161,7 +162,6 @@ bool MotionController::moveBackward(float distance) {
         return true;
     }
     
-    delay(UPDATE_RATE * 1000);
     return false;
 }
 
@@ -179,14 +179,13 @@ bool MotionController::turnLeft(float angle) {
         Serial.print("Turning left: ");
         Serial.print(angle * 180 / PI);
         Serial.println(" degrees");
+        return false;
     }
     
     float dt = UPDATE_RATE;
     
-    // Left wheel backward, right wheel forward for counterclockwise
     float angularVel = imu->getAngularVelocity();
     
-    // PID to control angular velocity
     float speedCommand = rightPID->compute(turnSpeed, angularVel, dt);
     
     leftMotor->setSpeed(-(int)speedCommand);
@@ -206,7 +205,6 @@ bool MotionController::turnLeft(float angle) {
         return true;
     }
     
-    delay(UPDATE_RATE * 1000);
     return false;
 }
 
@@ -224,11 +222,11 @@ bool MotionController::turnRight(float angle) {
         Serial.print("Turning right: ");
         Serial.print(angle * 180 / PI);
         Serial.println(" degrees");
+        return false;
     }
     
     float dt = UPDATE_RATE;
     
-    // Right wheel backward, left wheel forward for clockwise
     float angularVel = imu->getAngularVelocity();
     
     float speedCommand = rightPID->compute(turnSpeed, -angularVel, dt);
@@ -250,7 +248,6 @@ bool MotionController::turnRight(float angle) {
         return true;
     }
     
-    delay(UPDATE_RATE * 1000);
     return false;
 }
 

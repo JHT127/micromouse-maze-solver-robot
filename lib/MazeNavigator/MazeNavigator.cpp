@@ -47,30 +47,54 @@ void MazeNavigator::exploreMode() {
     Serial.println("=== EXPLORATION MODE ===");
     
     int stepCount = 0;
+    bool motionInProgress = false;
+    Direction nextDir = NORTH;
+    
     while (!isAtGoal()) {
-        stepCount++;
+        if (!motionInProgress) {
+            stepCount++;
+            
+            Serial.print("\n--- Step ");
+            Serial.print(stepCount);
+            Serial.print(" at cell (");
+            Serial.print(currentCell.x);
+            Serial.print(", ");
+            Serial.print(currentCell.y);
+            Serial.println(") ---");
+            
+            // Detect walls with sensors
+            detectWalls();
+            
+            // Get next move from flood fill
+            nextDir = floodFill->getNextMove(currentCell, currentHeading);
+            
+            Serial.print("Current heading: ");
+            Serial.print(currentHeading);
+            Serial.print(" Next direction: ");
+            Serial.println(nextDir);
+            
+            // Start move
+            executeMove(nextDir);
+            motionInProgress = true;
+        }
         
-        Serial.print("\n--- Step ");
-        Serial.print(stepCount);
-        Serial.print(" at cell (");
-        Serial.print(currentCell.x);
-        Serial.print(", ");
-        Serial.print(currentCell.y);
-        Serial.println(") ---");
-        
-        // Detect walls with sensors
-        detectWalls();
-        
-        // Get next move from flood fill
-        Direction nextDir = floodFill->getNextMove(currentCell, currentHeading);
-        
-        Serial.print("Current heading: ");
-        Serial.print(currentHeading);
-        Serial.print(" Next direction: ");
-        Serial.println(nextDir);
-        
-        // Execute move
-        executeMove(nextDir);
+        // Poll motion status
+        if (motionInProgress && !motionController->isMoving()) {
+            // Update position after movement completes
+            int turnDiff = (nextDir - currentHeading + 4) % 4;
+            
+            // Update heading based on turn
+            if (turnDiff == 1) {
+                currentHeading = nextDir;
+            } else if (turnDiff == 3) {
+                currentHeading = nextDir;
+            } else if (turnDiff == 2) {
+                currentHeading = nextDir;
+            }
+            
+            updatePosition();
+            motionInProgress = false;
+        }
         
         // Safety check
         if (stepCount > 200) {
@@ -78,7 +102,7 @@ void MazeNavigator::exploreMode() {
             break;
         }
         
-        delay(100);
+        delay(50);
     }
     
     Serial.println("\n=== GOAL REACHED! ===");
@@ -150,26 +174,14 @@ void MazeNavigator::executeMove(Direction nextDir) {
         // Turn right 90°
         Serial.println("Turning right...");
         motionController->turnRight(PI / 2);
-        while (motionController->isMoving()) {
-            delay(10);
-        }
-        currentHeading = nextDir;
     } else if (turnDiff == 3) {
         // Turn left 90°
         Serial.println("Turning left...");
         motionController->turnLeft(PI / 2);
-        while (motionController->isMoving()) {
-            delay(10);
-        }
-        currentHeading = nextDir;
     } else if (turnDiff == 2) {
         // Turn 180°
         Serial.println("Turning 180...");
         motionController->turnRight(PI);
-        while (motionController->isMoving()) {
-            delay(10);
-        }
-        currentHeading = nextDir;
     }
     
     // Move forward
@@ -177,15 +189,6 @@ void MazeNavigator::executeMove(Direction nextDir) {
     Serial.print(CELL_SIZE);
     Serial.println(" m)...");
     motionController->moveForward(CELL_SIZE);
-    
-    while (motionController->isMoving()) {
-        delay(10);
-    }
-    
-    // Update position
-    updatePosition();
-    
-    delay(200);  // Brief pause between moves
 }
 
 //------------------------------------------------------------

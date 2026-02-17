@@ -5,6 +5,8 @@
 #include <Wire.h>
 #include <cmath>
 
+#define DEG_TO_RAD 0.0174532925  // PI/180
+
 //------------------------------------------------------------
 // MPU6050 DRIVER CLASS
 // Purpose: Read gyroscope for angle tracking
@@ -35,13 +37,6 @@ private:
     //------------------------------------------------------------
     float currentAngle;     // Integrated angle in radians
     unsigned long lastUpdateTime;
-    
-    //------------------------------------------------------------
-    // CONVERSION CONSTANTS
-    // Purpose: Raw data to rad/s conversion
-    //------------------------------------------------------------
-    static constexpr double GYRO_SCALE = 131.0;
-    static constexpr double DEG_TO_RAD = 0.0174532925;
     
     //------------------------------------------------------------
     // HELPER FUNCTIONS

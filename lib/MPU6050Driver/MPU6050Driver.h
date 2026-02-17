@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <cmath>
 
 //------------------------------------------------------------
 // MPU6050 DRIVER CLASS
@@ -39,8 +40,8 @@ private:
     // CONVERSION CONSTANTS
     // Purpose: Raw data to rad/s conversion
     //------------------------------------------------------------
-    static constexpr float GYRO_SCALE = 131.0;  // LSB/(°/s) for ±250°/s range
-    static constexpr float DEG_TO_RAD = PI / 180.0;
+    static constexpr double GYRO_SCALE = 131.0;
+    static constexpr double DEG_TO_RAD = 0.0174532925;
     
     //------------------------------------------------------------
     // HELPER FUNCTIONS

@@ -82,8 +82,8 @@ void MPU6050Driver::update(float dt) {
     currentAngle += angularVel * actualDt;
     
     // Normalize to [-π, π]
-    while (currentAngle > PI) currentAngle -= 2 * PI;
-    while (currentAngle < -PI) currentAngle += 2 * PI;
+    while (currentAngle > M_PI) currentAngle -= 2 * M_PI;
+    while (currentAngle < -M_PI) currentAngle += 2 * M_PI;
 }
 
 //------------------------------------------------------------

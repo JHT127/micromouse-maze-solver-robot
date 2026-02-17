@@ -68,7 +68,7 @@ bool MotionController::moveForward(float distance) {
         leftEncoder->reset();
         rightEncoder->reset();
         imu->resetAngle();
-        stateSpace->setState(0, 0, 0);
+        stateSpace->setStartPosition(0, 0, 0);
         isMovingFlag = true;
         lastUpdateTime = millis();
         
@@ -123,7 +123,7 @@ bool MotionController::moveBackward(float distance) {
         leftEncoder->reset();
         rightEncoder->reset();
         imu->resetAngle();
-        stateSpace->setState(0, 0, 0);
+        stateSpace->setStartPosition(0, 0, 0);
         isMovingFlag = true;
         lastUpdateTime = millis();
         
@@ -172,7 +172,7 @@ bool MotionController::moveBackward(float distance) {
 bool MotionController::turnLeft(float angle) {
     if (!isMovingFlag) {
         imu->resetAngle();
-        stateSpace->setState(0, 0, 0);
+        stateSpace->setStartPosition(0, 0, 0);
         isMovingFlag = true;
         lastUpdateTime = millis();
         
@@ -215,7 +215,7 @@ bool MotionController::turnLeft(float angle) {
 bool MotionController::turnRight(float angle) {
     if (!isMovingFlag) {
         imu->resetAngle();
-        stateSpace->setState(0, 0, 0);
+        stateSpace->setStartPosition(0, 0, 0);
         isMovingFlag = true;
         lastUpdateTime = millis();
         

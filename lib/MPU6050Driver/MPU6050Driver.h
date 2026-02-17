@@ -6,6 +6,7 @@
 #include <cmath>
 
 #define DEG_TO_RAD 0.0174532925  // PI/180
+#define GYRO_SCALE 131.0  // LSB/(deg/s) for +/-250 deg/s range
 
 //------------------------------------------------------------
 // MPU6050 DRIVER CLASS

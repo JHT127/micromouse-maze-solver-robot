@@ -17,7 +17,7 @@ MPU6050Driver imu;
 //------------------------------------------------------------
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     delay(2000);
     
     Serial.println("\n\n");

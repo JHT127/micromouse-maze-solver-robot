@@ -20,15 +20,15 @@ StateSpace robot;
 // Kp: proportional gain - high enough to overcome motor friction
 // Ki: integral gain - reduces steady-state error
 // Kd: derivative gain - dampens oscillations
-PIDController leftPID(500.0, 28.0, 6.0);
-PIDController rightPID(500.0, 28.0, 6.0);
+PIDController leftPID(3600.0, 0.0, 0.0);
+PIDController rightPID(3600.0, 0.0, 0.0);
 
 //------------------------------------------------------------
 // TIMING
 //------------------------------------------------------------
 unsigned long lastUpdateTime = 0;
 const float UPDATE_INTERVAL = 0.02;  // 20ms update rate
-float targetSpeed = 0.15;  // Target velocity in m/s
+float targetSpeed = 0.08;  // Target velocity in m/s
 
 bool testsDone = false;
 
@@ -48,8 +48,8 @@ void setup() {
 
     leftPID.setOutputLimits(0, 255);
     rightPID.setOutputLimits(0, 255);
-    leftPID.setIntegralLimits(-80, 80);
-    rightPID.setIntegralLimits(-80, 80);
+    leftPID.setIntegralLimits(-120, 120);
+    rightPID.setIntegralLimits(-120, 120);
 
     Serial.println("All hardware initialized");
     leftPID.printGains();
@@ -64,7 +64,7 @@ void setup() {
     Serial.print("Target: ");
     Serial.print(targetSpeed);
     Serial.println(" m/s");
-    Serial.println("Kp=500.0, Ki=28.0, Kd=6.0");
+    //Serial.println("Kp=500.0, Ki=28.0, Kd=6.0");
     Serial.println("Output range: 0-255 PWM (smooth stable control)\n");
 
     leftEncoder.reset();
@@ -164,7 +164,7 @@ void setup() {
     Serial.print("Target: ");
     Serial.print(targetSpeed);
     Serial.println(" m/s");
-    Serial.println("Kp=500.0, Ki=28.0, Kd=6.0\n");
+    //Serial.println("Kp=500.0, Ki=28.0, Kd=6.0\n");
 
     leftEncoder.reset();
     rightEncoder.reset();

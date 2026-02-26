@@ -20,8 +20,8 @@ StateSpace robot;
 // Kp: proportional gain - high enough to overcome motor friction
 // Ki: integral gain - reduces steady-state error
 // Kd: derivative gain - dampens oscillations
-PIDController leftPID(3600.0, 0.0, 0.0);
-PIDController rightPID(3600.0, 0.0, 0.0);
+PIDController leftPID(4100.0, 0.0, 0.0);
+PIDController rightPID(4100.0, 0.0, 0.0);
 
 //------------------------------------------------------------
 // TIMING

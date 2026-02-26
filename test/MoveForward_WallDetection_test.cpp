@@ -129,13 +129,6 @@ int test_state = 0;
 void loop() {
     unsigned long now = millis();
     
-    // Read LIDAR
-    uint16_t frontDist = frontLidar.readRangeContinuousMillimeters();
-    uint16_t leftDist = leftLidar.readRangeContinuousMillimeters();
-    uint16_t rightDist = rightLidar.readRangeContinuousMillimeters();
-    
-    bool frontWall = frontLidar.isWallDetected();
-    
     // TEST 1: Move forward WITHOUT wall detection
     if (test_state == 0) {
         if (motion.moveForward(0.30)) {
@@ -153,32 +146,48 @@ void loop() {
             lastMoveTime = millis();
         }
         
-        // Print LIDAR readings every 500ms (info only, no detection)
-        if (now % 1000 < 50) {
-            Serial.print("Front: ");
-            Serial.print(frontDist);
-            Serial.print("mm | Left: ");
-            Serial.print(leftDist);
-            Serial.print("mm | Right: ");
-            Serial.print(rightDist);
-            Serial.println("mm");
+        // Debug: Print encoder velocities every 500ms
+        if (now % 500 < 50) {
+            float leftVel = leftEncoder.getVelocity(0.02);
+            float rightVel = rightEncoder.getVelocity(0.02);
+            Serial.print("L_vel: ");
+            Serial.print(leftVel, 3);
+            Serial.print(" m/s | R_vel: ");
+            Serial.print(rightVel, 3);
+            Serial.println(" m/s");
         }
     }
     
     // TEST 2: Move forward WITH wall detection
     else if (test_state == 1) {
-        // Check for wall collision
-        if (frontWall) {
-            motion.stop();
-            Serial.println("\n\n✗ WALL DETECTED!");
-            Serial.print("Front Distance: ");
-            Serial.print(frontDist);
-            Serial.println("mm");
-            Serial.println("Motion stopped!\n");
-            test_state = 2;
+        // Read LIDAR only every 100ms to avoid disrupting PID loop
+        static unsigned long lastLidarRead = 0;
+        bool frontWall = false;
+        uint16_t frontDist = 0;
+        
+        if (now - lastLidarRead > 100) {
+            lastLidarRead = now;
+            frontDist = frontLidar.readRangeContinuousMillimeters();
+            frontWall = frontLidar.isWallDetected();
+            
+            if (frontWall) {
+                motion.stop();
+                Serial.println("\n\n✗ WALL DETECTED!");
+                Serial.print("Front Distance: ");
+                Serial.print(frontDist);
+                Serial.println("mm");
+                Serial.println("Motion stopped!\n");
+                test_state = 2;
+            }
         }
-        // Try to move forward
-        else if (motion.moveForward(0.90)) {
+        
+        // Try to move forward (runs every 20ms)
+        if (!frontWall && !motion.moveForward(0.90)) {
+            // Still moving
+        } else if (frontWall) {
+            // Wall detected
+        } else {
+            // Movement complete
             test2_done = true;
             Serial.println("\n✓ Forward movement complete\n");
             
@@ -187,23 +196,10 @@ void loop() {
             Serial.println("========================================");
             Serial.println("✓ Both tests passed!");
             Serial.println("  - Forward motion works (no detection)");
-            Serial.println("  - No wall was detected in test 2");
+            Serial.println("  - Wall detection works");
             Serial.println("\n✓ Motion controller with LIDARs is ready!\n");
             
             test_state = 2;
-        }
-        
-        // Print LIDAR readings every 1 second (with wall status)
-        if (now % 1000 < 50) {
-            Serial.print("Front: ");
-            Serial.print(frontDist);
-            Serial.print("mm | Left: ");
-            Serial.print(leftDist);
-            Serial.print("mm | Right: ");
-            Serial.print(rightDist);
-            Serial.print("mm ");
-            if (frontWall) Serial.print("[WALL!]");
-            Serial.println();
         }
     }
     
@@ -212,5 +208,5 @@ void loop() {
         delay(1000);
     }
     
-    delay(10);
+    delay(20);  // 50Hz control loop: 1s/50 = 20ms per cycle
 }

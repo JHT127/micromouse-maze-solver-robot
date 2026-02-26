@@ -89,6 +89,22 @@ bool MotionController::moveForward(float distance) {
     float leftPWM = leftPID->compute(forwardSpeed, leftVel, dt);
     float rightPWM = rightPID->compute(forwardSpeed, rightVel, dt);
     
+    // Differencial Correction
+    float speedDiff = rightVel - leftVel;
+    leftPWM += speedDiff * 2000;  // Adjust left motor to reduce speed difference
+    rightPWM -= speedDiff * 2000; // Adjust right motor to reduce speed difference
+
+    //MPU Angel Correction
+    float angleError = imu->getAngle();  // Assuming target angle is 0 for straight motion
+    leftPWM += angleError * 1000;  // Adjust left motor to correct angle
+    rightPWM -= angleError * 1000; // Adjust right motor to correct angle
+
+    // Limit PWM to valid range
+    if (leftPWM > 255) leftPWM = 255;
+    if (leftPWM < -255) leftPWM = -255;
+    if (rightPWM > 255) rightPWM = 255;
+    if (rightPWM < -255) rightPWM = -255;
+
     // Set motor speeds
     leftMotor->setSpeed((int)leftPWM);
     rightMotor->setSpeed((int)rightPWM);

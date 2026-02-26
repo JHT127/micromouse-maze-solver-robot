@@ -50,15 +50,15 @@ void Motor::setSpeed(int speed) {
 
     if (speed > 0) {
         // FORWARD
-        digitalWrite(pinA, HIGH);
-        digitalWrite(pinB, LOW);
+        digitalWrite(pinA, LOW);
+        digitalWrite(pinB, HIGH);
         analogWrite(pinPWM, speed);
         
 
     } else if (speed < 0) {
         // BACKWARD
-        digitalWrite(pinA, LOW);
-        digitalWrite(pinB, HIGH);
+        digitalWrite(pinA, HIGH);
+        digitalWrite(pinB, LOW);
         analogWrite(pinPWM, -speed);  // Make positive for PWM
         
 

@@ -9,6 +9,7 @@ LIDARSensor::LIDARSensor(int xshut, int interrupt)
 {
     i2cAddress = DEFAULT_ADDRESS;
     isInitialized = false;
+    isContinuous = false;
     lastReading = 0;
     
     pinMode(xshutPin, OUTPUT);
@@ -17,51 +18,27 @@ LIDARSensor::LIDARSensor(int xshut, int interrupt)
 
 //------------------------------------------------------------
 // INITIALIZE
-// Purpose: Set unique I2C address
+// Purpose: Set unique I2C address and start continuous mode
 //------------------------------------------------------------
 bool LIDARSensor::initialize(uint8_t newAddress) {
     // Sensor should already be enabled
     delay(10);
     
-    // Read who am i to verify communication at default address
-    uint8_t whoAmI = readRegister(REG_IDENTIFICATION_MODEL_ID);
-    
-    if (whoAmI != 0xEE && whoAmI != 0xAF) {
-        Serial.print("LIDAR not found at 0x29. WHO_AM_I = 0x");
-        Serial.println(whoAmI, HEX);
+    // Initialize sensor at default address
+    if (!sensor.init()) {
+        Serial.println("LIDAR sensor.init() failed");
         return false;
     }
     
-    // Write new I2C address (2-byte write)
-    Wire.beginTransmission(DEFAULT_ADDRESS);
-    Wire.write(0x8A);  // I2C_SLAVE_DEVICE_ADDRESS register
-    Wire.write(newAddress);
-    Wire.endTransmission();
-    
-    delay(10);
-    
-    // Verify communication at new address
-    Wire.beginTransmission(newAddress);
-    Wire.write(REG_IDENTIFICATION_MODEL_ID);
-    Wire.endTransmission(false);
-    Wire.requestFrom((int)newAddress, 1);
-    
-    if (!Wire.available()) {
-        Serial.print("Failed to communicate at new address 0x");
-        Serial.println(newAddress, HEX);
-        return false;
-    }
-    
-    Wire.read();
-    
+    // Set to new address
+    sensor.setAddress(newAddress);
     i2cAddress = newAddress;
     
-    // Start continuous ranging mode
-    writeRegister(REG_SYSRANGE_START, 0x01);
+    // Configure for maze navigation
+    sensor.setMeasurementTimingBudget(20000);
     
     isInitialized = true;
-    Serial.print("LIDAR initialized at 0x");
-    Serial.println(i2cAddress, HEX);
+    isContinuous = false;
     
     return true;
 }
@@ -88,7 +65,12 @@ float LIDARSensor::getDistanceMeters() {
 // Purpose: Check if wall is close
 //------------------------------------------------------------
 bool LIDARSensor::isWallDetected() {
-    float distance = getDistanceMeters();
+    float distance;
+    if (isContinuous) {
+        distance = readRangeContinuousMillimeters() / 1000.0;  // Use continuous reading
+    } else {
+        distance = getDistanceMeters();  // Use single-shot reading
+    }
     return distance < WALL_THRESHOLD;
 }
 
@@ -175,5 +157,48 @@ uint16_t LIDARSensor::readRangeSingleMillimeters() {
         range = (Wire.read() << 8) | Wire.read();
     }
     
+    return range;
+}
+
+
+
+
+//------------------------------------------------------------
+// START CONTINUOUS
+// Purpose: Start continuous ranging mode (faster readings)
+//------------------------------------------------------------
+void LIDARSensor::startContinuous() {
+    if (!isInitialized) return;
+    
+    sensor.startContinuous();
+    isContinuous = true;
+}
+
+
+
+
+//------------------------------------------------------------
+// STOP CONTINUOUS
+// Purpose: Stop continuous ranging mode
+//------------------------------------------------------------
+void LIDARSensor::stopContinuous() {
+    sensor.stopContinuous();
+    isContinuous = false;
+}
+
+
+
+
+//------------------------------------------------------------
+// READ RANGE CONTINUOUS MILLIMETERS
+// Purpose: Get distance in continuous mode (using library)
+//------------------------------------------------------------
+uint16_t LIDARSensor::readRangeContinuousMillimeters() {
+    if (!isInitialized || !isContinuous) {
+        return 0;
+    }
+    
+    uint16_t range = sensor.readRangeContinuousMillimeters();
+    lastReading = range;
     return range;
 }

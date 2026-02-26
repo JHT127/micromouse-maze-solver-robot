@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <Wire.h>
 #include "pins.h"
 #include "Motor.h"
 #include "Encoder.h"
@@ -46,6 +47,7 @@ MazeNavigator navigator(&motion, &frontLidar, &leftLidar, &rightLidar, &floodFil
 //------------------------------------------------------------
 void setup() {
     Serial.begin(115200);
+    Wire.begin();  // Initialize I2C bus (required for IMU and LIDARs)
     delay(2000);
     
     Serial.println("=== MICROMOUSE MAZE SOLVER ===");

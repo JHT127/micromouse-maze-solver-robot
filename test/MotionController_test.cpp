@@ -1,4 +1,3 @@
-
 #include <Arduino.h>
 #include "pins.h"
 #include "Motor.h"
@@ -39,7 +38,7 @@ unsigned long lastMoveTime = 0;
 //------------------------------------------------------------
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(9600);
     delay(2000);
     
     Serial.println("\n\n");

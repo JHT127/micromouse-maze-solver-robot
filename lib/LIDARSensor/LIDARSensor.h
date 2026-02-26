@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
+#include <VL53L0X.h>
 
 //------------------------------------------------------------
 // LIDAR SENSOR CLASS
@@ -35,16 +36,18 @@ private:
     
     //------------------------------------------------------------
     // WALL DETECTION
-    // Purpose: Threshold for wall presence
+    // Purpose: Threshold for wall presence (200mm = 20cm for maze navigation)
     //------------------------------------------------------------
-    static constexpr float WALL_THRESHOLD = 0.15;  // 15cm
+    static constexpr float WALL_THRESHOLD = 0.20;  // 20cm
     
     //------------------------------------------------------------
     // STATE
     // Purpose: Track sensor status
     //------------------------------------------------------------
     bool isInitialized;
+    bool isContinuous;      // True if continuous mode is running
     uint16_t lastReading;   // mm
+    VL53L0X sensor;         // VL53L0X library sensor object
     
     //------------------------------------------------------------
     // HELPER FUNCTIONS
@@ -71,11 +74,19 @@ public:
     // READING FUNCTIONS
     // Purpose: Get distance
     //------------------------------------------------------------
-    uint16_t getDistanceMM();           // Distance in millimeters
-    float getDistanceMeters();          // Distance in meters
-    bool isWallDetected();              // True if distance < threshold
+    uint16_t getDistanceMM();                           // Single-shot (reliable)
+    uint16_t readRangeContinuousMillimeters();          // Continuous (fast, uses library)
+    float getDistanceMeters();                          // Distance in meters
+    bool isWallDetected();                              // True if distance < 10cm
+    
+    //-CONTINUOUS MODE
+    // Purpose: Faster measurements
+    //------------------------------------------------------------
+    void startContinuous();             // Start continuous ranging
+    void stopContinuous();              // Stop continuous ranging
     
     //------------------------------------------------------------
+    // -----------------------------------------------------------
     // UTILITY
     // Purpose: Sensor control
     //------------------------------------------------------------

@@ -38,7 +38,7 @@ private:
     // WALL DETECTION
     // Purpose: Threshold for wall presence (200mm = 20cm for maze navigation)
     //------------------------------------------------------------
-    static constexpr float WALL_THRESHOLD = 0.20;  // 20cm
+    static constexpr float WALL_THRESHOLD = 0.20; // 20cm in meters
     
     //------------------------------------------------------------
     // STATE

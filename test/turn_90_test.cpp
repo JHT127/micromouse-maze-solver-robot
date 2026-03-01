@@ -18,8 +18,8 @@ Motor rightMotor(MOTOR_RIGHT_A, MOTOR_RIGHT_B, MOTOR_RIGHT_PWM);
 Encoder leftEncoder(ENCODER_LEFT_A, ENCODER_LEFT_B, true);
 Encoder rightEncoder(ENCODER_RIGHT_A, ENCODER_RIGHT_B, false);
 
-PIDController leftPID(65.0, 0.0, 2.0);
-PIDController rightPID(65.0, 0.0, 2.0);
+PIDController leftPID(65.0, 0.0, 0.0);
+PIDController rightPID(65.0, 0.0, 0.0);
 
 StateSpace robot;
 

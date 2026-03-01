@@ -1,4 +1,11 @@
+
 #include "MotionController.h"
+
+// Set PID controllers at runtime
+void MotionController::setPIDControllers(PIDController* lpid, PIDController* rpid) {
+    leftPID = lpid;
+    rightPID = rpid;
+}
 
 //------------------------------------------------------------
 // CONSTRUCTOR
@@ -15,7 +22,7 @@ MotionController::MotionController(Motor* lm, Motor* rm,
       imu(imu_ptr), stateSpace(ss)
 {
     forwardSpeed = 0.15;
-    turnSpeed = 1.57;
+    turnSpeed = 2.5;
     lastUpdateTime = millis();
     isMovingFlag = false;
 }

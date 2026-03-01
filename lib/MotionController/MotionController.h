@@ -59,6 +59,8 @@ private:
     bool isAngleReached(float target, float current);
 
 public:
+        // Set PID controllers at runtime
+        void setPIDControllers(PIDController* lpid, PIDController* rpid);
     //------------------------------------------------------------
     // CONSTRUCTOR
     // Purpose: Link to hardware components

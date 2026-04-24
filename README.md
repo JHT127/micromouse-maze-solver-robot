@@ -216,4 +216,4 @@ This repository contains **no credentials, API keys, or Wi-Fi passwords**. The `
 
 ## 📄 License
 
-This project is submitted as academic coursework. You are welcome to study, fork, and learn from the code. Please note that we are students and still learning, so double-check everything.
+This project is submitted as academic coursework. You are welcome to study, fork, and learn from the code. Please note that we are students and still learning, so double-check everything. Do not forget to check out our journey documented on trello (the link is provided above if you click on the words Trello Board)! 

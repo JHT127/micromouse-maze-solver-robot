@@ -77,11 +77,9 @@ private:
     bool isGoal(Cell cell);
     bool hasWall(Cell cell, Direction dir);
     void calculateDistances();
-    // ...existing code...
-    // Move getNeighbor to public
+    Cell getNeighbor(Cell cell, Direction dir);
 
 public:
-        Cell getNeighbor(Cell cell, Direction dir);
     //------------------------------------------------------------
     // SETUP
     // Purpose: Initialize maze

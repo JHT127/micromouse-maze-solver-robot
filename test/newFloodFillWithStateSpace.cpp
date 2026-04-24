@@ -1,4 +1,3 @@
-// ...existing code...
 #include <Arduino.h>
 #include <Wire.h>
 #include "pins.h"
@@ -12,7 +11,11 @@
 #include "FloodFill.h"
 #include "MazeNavigator.h"
 
-// ...existing code...
+//------------------------------------------------------------
+// GLOBAL HARDWARE OBJECTS
+// Purpose: Define all components for testing
+//------------------------------------------------------------
+
 Motor leftMotor(MOTOR_LEFT_A, MOTOR_LEFT_B, MOTOR_LEFT_PWM);
 Motor rightMotor(MOTOR_RIGHT_A, MOTOR_RIGHT_B, MOTOR_RIGHT_PWM);
 Encoder leftEncoder(ENCODER_LEFT_A, ENCODER_LEFT_B, true);
@@ -35,7 +38,10 @@ LIDARSensor rightLidar(LIDAR_RIGHT_XSHOT, LIDAR_RIGHT_INT);
 FloodFill floodfill;
 MazeNavigator mazeNavigator(&motion, &frontLidar, &leftLidar, &rightLidar, &floodfill);
 
-// ...existing code...
+//------------------------------------------------------------
+// STATE SPACE EXAMPLE
+// Purpose: Demonstrate position tracking functionality
+//------------------------------------------------------------
 void useStateSpaceExample() {
     robot.setStartPosition(1.0, 2.0, 0.5); // x, y, theta
     Serial.print("StateSpace: x="); Serial.print(robot.getX());

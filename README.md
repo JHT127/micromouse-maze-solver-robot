@@ -3,8 +3,11 @@
 > An autonomous maze-solving robot built from scratch — custom 3D-printed chassis, embedded C++ firmware, and classical control theory running on an ESP32.
 
 **Team**:  Joud Thaher · Layan Salem · Labiba Sharia · Waad Ziadeh
+
 **Instructor**: Dr. Wasel  
+
 **University**: Birzeit University 
+
 **Robot Name**: SHAMSHOON
 
 ---
